@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <!--320-->
+    <title>From Shomolu, With Love</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/animate.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body style="display: none">
+    <div id="app">
+        <div class="mid-section">
+            <div class="mid-section-comma" v-bind:class="{ 'stay-left': $route.name != 'login' }"><img src="img/comma.svg" alt=","></div>
+            <div class="mid-section-line"></div>
+        </div>
+        <router-view></router-view>
+    </div>
+    <script type="text/x-template" id="Login">
+        <form class="login">
+            <div class="login-top">
+                <div class="login-text text-red animated fadeIn">From
+                    <br> Shomolu</div>
+                <div class="login-form animated fadeIn" style="display: none">
+                    <div class="login-label">To begin, please enter
+                        <br> your full name</div>
+                    <input type="text" class="login-input" v-model="name" placeholder="Full Name" required>
+                </div>
+            </div>
+            <div class="login-mid"></div>
+            <div class="login-bottom">
+                <div class="login-text bottom-align animated fadeIn">With
+                    <br> Love</div>
+                <button class="login-button animated fadeIn" style="display: none" v-on:click.prevent="saveUser(name)">Next</button>
+            </div>
+        </form>
+    </script>
+    <script type="text/x-template" id="Home">
+        <div class="home">
+            <div class="home-label animated fadeIn">
+                <h3>Hi, {{name}}</h3>
+                <p>Use this app to explore and comment on the art</p>
+            </div>
+            <div class="home-actions animated fadeIn">
+                <a v-on:click.prevent="openModal('viewArtModal')">Look up item</a>
+                <a v-on:click.prevent="openModal('aboutModal')">About</a>
+            </div>
+            <div id="viewArtModal" class="modal" v-if="viewArtModal">
+                <div class="modal-overlay animated fadeIn" v-on:click="closeModal('viewArtModal')"></div>
+                <div class="modal-content">
+                    <form class="modal-form">
+                        <input class="modal-form-input" v-model.number="id" type="number" pattern="\d*" placeholder="Item id" required>
+                        <button class="modal-form-button animated fadeIn" v-on:click.prevent="check(id)">Next</button>
+                    </form>
+                    <div class="modal-error" v-if="error">{{error}}</div>
+                </div>
+            </div>
+            <div id="aboutModal" class="modal" v-if="aboutModal">
+                <div class="modal-overlay animated fadeIn" v-on:click="closeModal('aboutModal')"></div>
+                <div class="modal-content">
+                    <div class="modal-text">
+                    	<h3>About this exhibition</h3>
+                    	<p>We created this as a way to showcase the artwork of friends, and tell stories about how we've collected our most prized possessions.</p>
+                    	<p>This experiment took five days to build, and we hope you enjoy it.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script type="text/x-template" id="Artwork">
+        <div class="art animated fadeIn">
+            <div class="loader" v-if="!loaded"></div>
+            <div class="art-close" v-if="loaded">
+                <router-link v-bind:to="{name: 'home'}"><img src="img/close.svg" alt="Close"></router-link>
+            </div>
+            <div class="art-top" v-if="loaded">
+                <div class="art-number">{{$route.params.id}}</div>
+                <div class="art-name">{{info.name}}</div>
+                <div class="art-artist">By {{info.artist}}</div>
+            </div>
+            <div class="art-body" v-if="loaded">
+                <div class="art-comment" v-if="info.opemipo"><b class="art-comment-author">Opemipo:</b> {{info.opemipo}}</div>
+                <div class="art-comment" v-if="info.timi"><b class="art-comment-author">Timi:</b> {{info.timi}}</div>
+                <div class="art-comment" v-if="info.jubril"><b class="art-comment-author">Jubril:</b> {{info.jubril}}</div>
+                <div class="art-comment-label">
+                    <span v-if="comments.length">What other people think</span>
+                    <span v-else>No other comments yet</span>
+                </div>
+                <div class="art-comment" v-if="comments.length" v-for="comment in comments">
+                    <b class="art-comment-author">{{comment.name}}:</b> {{comment.body}}
+                </div>
+            </div>
+            <div class="art-footer" v-if="loaded">
+                <span class="button-left" v-if="hasCommented">Note added</span>
+                <a v-on:click.prevent="openModal('addCommentModal')" class="button-left" v-else>Add your note</a>
+                <span class="button-right" v-if="info.purchased">Sold</span>
+                <a v-on:click.prevent="openModal('buyArtModal')" class="button-right" v-else>Buy for {{info.price}}</a>
+            </div>
+            <div id="addCommentModal" class="modal" v-if="addCommentModal">
+                <div class="modal-overlay animated fadeIn" v-on:click="closeModal('addCommentModal'); newComment = null;"></div>
+                <div class="modal-content">
+                    <form class="modal-form">
+                        <textarea class="modal-form-input" rows="3" v-model.number="newComment" placeholder="Your comment" required></textarea>
+                        <button class="modal-form-button animated fadeIn" v-on:click.prevent="post(newComment)">Send</button>
+                    </form>
+                </div>
+            </div>
+            <div id="buyArtModal" class="modal" v-if="buyArtModal">
+                <div class="modal-overlay animated fadeIn" v-on:click="closeModal('buyArtModal')"></div>
+                <div class="modal-content">
+                    <form class="modal-form">
+                        <input class="modal-form-input" v-model="phone" type="tel" placeholder="Phone number" required>
+                        <button class="modal-form-button centered animated fadeIn" v-on:click.prevent="purchase(phone)">Buy for {{info.price}}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </script>
+</body>
+<script src="https://unpkg.com/vue@2.1.1/dist/vue.js"></script>
+<script src="https://unpkg.com/vue-router@2.1.1/dist/vue-router.js"></script>
+<script src="https://www.gstatic.com/firebasejs/3.8.0/firebase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="js/app.js"></script>
+
+</html>

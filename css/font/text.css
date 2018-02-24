@@ -1,0 +1,13 @@
+@font-face {
+    font-family: 'Brandon Text';
+    src: url('files/brandontext/brandontext-bold.woff2') format('woff2'), url('files/brandontext/brandontext-bold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Brandon Text';
+    src: url('files/brandontext/brandontext-regular.woff2') format('woff2'), url('files/brandontext/brandontext-regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
